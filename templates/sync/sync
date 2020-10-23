@@ -1,0 +1,102 @@
+#!/bin/sh
+# -*- mode: sh -*-
+
+SCRIPT_NAME="${0##*/}"
+SCRIPT_RPATH="${0%$SCRIPT_NAME}"
+SCRIPT_PATH=`cd "${SCRIPT_RPATH:-.}" && pwd`
+
+ME=$(whoami)
+
+SYNC_DIR="{{ share_sync_dir }}"
+
+run_rsync()
+(
+    run_rsync__from="$1"
+    run_rsync__from_files="$2"
+    run_rsync__to="$3"
+    run_rsync__user="${4:-$ME}"
+
+    rsync -av --delete --force -e "ssh -l $run_rsync__user" -r --files-from="$run_rsync__from_files" "$run_rsync__from" "$run_rsync__to"
+)
+
+check_ping()
+{
+    ping -c 2 -W 5 "$1" >/dev/null
+}
+
+run_sync()
+{
+    for run_sync__f in "$SYNC_DIR"/sync_*; do
+        (
+            [ -r "$run_sync__f" ] || return 1
+            . "$run_sync__f" ||  return 1
+
+            [ -n "$SKIP" ] && return 0
+
+            [ -n "$FROM" ] &&
+                [ -n "$FROM_FILES" ] &&
+                [ -n "$TO" ] || {
+                    echo >&2 "$run_sync__f: bad configuration FROM:$FROM,FROM_FILES:$FROM_FILES,TO:$TO"
+                    return 1
+                }
+
+            [ -r "$SYNC_DIR/$FROM_FILES" ] || {
+                echo >&2 "\"$SYNC_DIR/$FROM_FILES\" is not readable from $PWD"
+                return 1
+            }
+
+            case $FROM in
+                *:*) check_ping "${FROM%%:*}" || {
+                           echo >&2 failed to reach $FROM
+                           return 1
+                       }
+                     ;;
+            esac
+            case $TO in
+                *:*) check_ping "${TO%%:*}" || {
+                           echo >&2 failed to reach $TO
+                           return 1
+                       }
+                     ;;
+            esac
+
+            run_rsync "$FROM" "$SYNC_DIR/$FROM_FILES" "$TO" "$REMOTE_USER"
+        )
+    done
+}
+
+
+LOCK="${SCRIPT_PATH}/.${SCRIPT_NAME}.lock"
+
+lock_do()
+{
+    lock || return 1
+    "$@"
+    lock_do__status=$?
+    lock_clean
+    return $lock_do__status
+}
+
+lock()
+{
+    lock__process=
+    if [ -r $LOCK ] ; then
+        lock__process=$(cat "$LOCK")
+    fi
+
+    if kill -0 "$lock__process" >/dev/null 2>&1 ; then
+        echo "process $lock__process is already running (locking)."
+        return 1
+    else
+        lock_clean
+        echo $$ > "$LOCK"
+    fi
+}
+
+lock_clean()
+{
+    rm -f "$LOCK"
+}
+
+
+lock_do run_sync

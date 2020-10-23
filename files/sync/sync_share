@@ -1,0 +1,5 @@
+SKIP=yes
+FROM=share:/share
+FROM_FILES=share_list
+TO=/share
+REMOTE_USER=share_guest

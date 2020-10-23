@@ -1,2 +1,14 @@
 ---
-# tasks file for ansible_role_share
+
+- block:
+    - include: accounts.yml
+      vars: {
+        accounts_groups: "{{ share_groups }}",
+        accounts_users: "{{ share_users }}"
+      }
+
+    - include: workspace.yml
+      vars:
+        workspace_directories: "{{ share_directories }}"
+
+    - include: share_utils.yml

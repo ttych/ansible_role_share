@@ -1,0 +1,47 @@
+---
+
+- block:
+    - name: deploy sync command
+      template:
+        src: "sync/{{ item.file }}"
+        dest: "{{ share_bin_dir }}/{{ item.file }}"
+        mode: "{{ item.mode }}"
+        owner: "{{ share_user }}"
+        group: "{{ share_group }}"
+      loop:
+        - { file: sync, mode: "0755" }
+
+    - name: check sync conf presence
+      stat:
+        path: "{{ share_sync_dir }}/sync_share"
+      register: t_share_sync_conf
+
+    - name: deploy sync_share
+      copy:
+        src: "sync/sync_share"
+        dest: "{{ share_sync_dir }}/sync_share"
+        mode: "0644"
+        owner: "{{ share_user }}"
+        group: "{{ share_group }}"
+      when: not t_share_sync_conf.stat.exists
+
+    - name: check sync list presence
+      stat:
+        path: "{{ share_sync_dir }}/share_list"
+      register: t_share_sync_list
+
+    - name: deploy share_list
+      copy:
+        src: "sync/share_list"
+        dest: "{{ share_sync_dir }}/share_list"
+        mode: "0644"
+        owner: "{{ share_user }}"
+        group: "{{ share_group }}"
+      when: not t_share_sync_list.stat.exists
+
+    - name: run sync_share from cron
+      cron:
+        name: sync_share
+        special_time: daily
+        job: "{{ share_sync }}"
+        user: "{{ share_user }}"

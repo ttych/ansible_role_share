@@ -1,2 +1,38 @@
 ---
-# defaults file for ansible_role_share
+
+share_user: share
+share_group: share
+share_home: /home/share
+share_shell: /bin/sh
+share_etc_dir: "{{ share_home }}/etc"
+share_sync_dir: "{{ share_etc_dir }}/sync"
+share_bin_dir: "{{ share_home }}/bin"
+share_sync: "{{ share_bin_dir }}/sync"
+
+share_groups:
+  - { name: "{{ share_group }}", gid: 3103 }
+  - { name: share_guest, gid: 3104 }
+share_users:
+  - name: "{{ share_user }}"
+    comment: "{{ share_user }}"
+    group: "{{ share_group }}"
+    groups:
+    home: "{{ share_home }}"
+    shell: "{{ share_shell }}"
+    uid: 3103
+    home_mode: '0700'
+    password: '*'
+  - name: share_guest
+    comment: share_guest
+    group: share_guest
+    groups:
+    home: /home/share_guest
+    shell: "{{ share_shell }}"
+    uid: 3104
+    home_mode: '0700'
+    password: '*'
+
+share_directories:
+  - { path: "{{ share_bin_dir }}", owner: "{{ share_user }}", group: "{{ share_group }}", mode: "0755" }
+  - { path: "{{ share_etc_dir }}", owner: "{{ share_user }}", group: "{{ share_group }}", mode: "0755" }
+  - { path: "{{ share_sync_dir }}", owner: "{{ share_user }}", group: "{{ share_group }}", mode: "0755" }
