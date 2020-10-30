@@ -16,7 +16,6 @@ share_users:
   - name: "{{ share_user }}"
     comment: "{{ share_user }}"
     group: "{{ share_group }}"
-    groups:
     home: "{{ share_home }}"
     shell: "{{ share_shell }}"
     uid: 3103
@@ -25,7 +24,6 @@ share_users:
   - name: share_guest
     comment: share_guest
     group: share_guest
-    groups:
     home: /home/share_guest
     shell: "{{ share_shell }}"
     uid: 3104
