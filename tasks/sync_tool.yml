@@ -1,13 +1,18 @@
 ---
 
+- include_tasks: workspace.yml
+  vars:
+    workspace_directories: "{{ share_sync_directories }}"
+
+
 - block:
     - name: deploy sync command
       template:
         src: "sync/{{ item.file }}"
         dest: "{{ share_bin_dir }}/{{ item.file }}"
         mode: "{{ item.mode }}"
-        owner: "{{ share_user }}"
-        group: "{{ share_group }}"
+        owner: "{{ share_name }}"
+        group: "{{ share_name }}"
       loop:
         - { file: sync, mode: "0755" }
 
@@ -21,8 +26,8 @@
         src: "sync/sync_share"
         dest: "{{ share_sync_dir }}/sync_share"
         mode: "0644"
-        owner: "{{ share_user }}"
-        group: "{{ share_group }}"
+        owner: "{{ share_name }}"
+        group: "{{ share_name }}"
       when: not t_share_sync_conf.stat.exists
 
     - name: check sync list presence
@@ -35,8 +40,8 @@
         src: "sync/share_list"
         dest: "{{ share_sync_dir }}/share_list"
         mode: "0644"
-        owner: "{{ share_user }}"
-        group: "{{ share_group }}"
+        owner: "{{ share_name }}"
+        group: "{{ share_name }}"
       when: not t_share_sync_list.stat.exists
 
     - name: run sync_share from cron
@@ -44,4 +49,4 @@
         name: sync_share
         special_time: daily
         job: "{{ share_sync }}"
-        user: "{{ share_user }}"
+        user: "{{ share_name }}"

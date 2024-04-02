@@ -1,14 +1,16 @@
 ---
 
 - block:
-    - include: accounts.yml
-      vars: {
-        accounts_groups: "{{ share_groups }}",
-        accounts_users: "{{ share_users }}"
-      }
+    - include_tasks: context.yml
 
-    - include: workspace.yml
-      vars:
-        workspace_directories: "{{ share_directories }}"
+    # - include_tasks: users.yml
 
-    - include: share_utils.yml
+    # - include_tasks: sync_tool.yml
+
+    - include_tasks: share_dirs.yml
+
+  when: want_share
+
+- name: set has_share
+  set_fact:
+    has_share: "{{ want_share }}"

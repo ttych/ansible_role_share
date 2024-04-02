@@ -1,36 +1,204 @@
 ---
 
-share_user: share
-share_group: share
-share_home: /home/share
-share_shell: /bin/sh
+want_share: no
+
+
+share_name: share
+share_uid: 2103
+share_home: "/home/{{ share_name }}"
+share_guest_name: share_guest
+share_guest_uid: 2104
+share_guest_home: "/home/{{ share_guest_name }}"
+
+share_groups:
+  - { name: "{{ share_name }}", gid: "{{ share_uid }}" }
+  - { name: "{{ share_guest_name }}", gid: "{{ share_guest_uid }}" }
+share_users:
+  - name: "{{ share_name }}"
+    comment: "{{ share_name }}"
+    group: "{{ share_name }}"
+    home: "{{ share_home }}"
+    shell: /bin/sh
+    uid: "{{ share_uid }}"
+    home_mode: '0700'
+    password: '*'
+  - name: "{{ share_guest_name }}"
+    comment: "{{ share_guest_name }}"
+    group: "{{ share_guest_name }}"
+    home: "{{ share_guest_home }}"
+    shell: /bin/sh
+    uid: "{{ share_guest_uid }}"
+    home_mode: '0700'
+    password: '*'
+
+
 share_etc_dir: "{{ share_home }}/etc"
 share_sync_dir: "{{ share_etc_dir }}/sync"
 share_bin_dir: "{{ share_home }}/bin"
 share_sync: "{{ share_bin_dir }}/sync"
 
-share_groups:
-  - { name: "{{ share_group }}", gid: 3103 }
-  - { name: share_guest, gid: 3104 }
-share_users:
-  - name: "{{ share_user }}"
-    comment: "{{ share_user }}"
-    group: "{{ share_group }}"
-    home: "{{ share_home }}"
-    shell: "{{ share_shell }}"
-    uid: 3103
-    home_mode: '0700'
-    password: '*'
-  - name: share_guest
-    comment: share_guest
-    group: share_guest
-    home: /home/share_guest
-    shell: "{{ share_shell }}"
-    uid: 3104
-    home_mode: '0700'
-    password: '*'
+share_sync_directories:
+  - { path: "{{ share_bin_dir }}", owner: "{{ share_name }}", group: "{{ share_name }}", mode: "0755" }
+  - { path: "{{ share_etc_dir }}", owner: "{{ share_name }}", group: "{{ share_name }}", mode: "0755" }
+  - { path: "{{ share_sync_dir }}", owner: "{{ share_name }}", group: "{{ share_name }}", mode: "0755" }
 
-share_directories:
-  - { path: "{{ share_bin_dir }}", owner: "{{ share_user }}", group: "{{ share_group }}", mode: "0755" }
-  - { path: "{{ share_etc_dir }}", owner: "{{ share_user }}", group: "{{ share_group }}", mode: "0755" }
-  - { path: "{{ share_sync_dir }}", owner: "{{ share_user }}", group: "{{ share_group }}", mode: "0755" }
+
+share_workdirs:
+  - label: share
+    path: /share
+    owner: root
+    group: "{{ root_group }}"
+    mode: '0555'
+    zfs_parent: zdata
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "off"
+  - label: computer_sciences
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: dispatch
+    owner: share
+    group: share
+    mode: '3777'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "on"
+  - label: purge
+    owner: share
+    group: share
+    mode: '3777'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "on"
+  - label: distfiles
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: library
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: documents
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: games
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: hardwares
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: softwares
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: musics
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: photos
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: videos
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: repositories
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: projects
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+  - label: sports
+    owner: share
+    group: share
+    mode: '0755'
+    zfs_parent_dir: /share
+    zfs_properties:
+      compression: "lz4"
+      setuid: off
+      sharenfs: "ro"
+
+
+share_zfs_try: true
+share_zfs_dataset_properties:
+  setuid: off
+  compression: "lz4"
+  sharenfs: off
+  sharesmb: off
+  atime: off
+  relatime: off
+
+
+root_group: 0

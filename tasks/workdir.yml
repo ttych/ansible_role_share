@@ -1,0 +1,107 @@
+---
+
+### reset
+
+- name: reset workdir_path
+  set_fact:
+    workdir_path: null
+
+
+
+### zfs
+
+- block:
+    - name: reset dataset
+      set_fact:
+        workdir_zfs_dataset: null
+
+    - block:
+        - name: "zfs {{ workdir.path }} status"
+          shell: zfs list -H "{{ workdir.path }}" | awk '{print $1}'
+          changed_when: no
+          register: t_workdir_zfs_stat
+
+        - name: set dataset from current
+          set_fact:
+            workdir_zfs_dataset: "{{ t_workdir_zfs_stat.stdout }}"
+          when:
+            - t_workdir_zfs_stat.rc == 0 and t_workdir_zfs_stat.stdout != ""
+
+      when: workdir.path | default(false)
+
+    - block:
+        - name: "zfs {{ workdir.zfs_parent }} status"
+          shell: zfs list -H "{{ workdir.zfs_parent }}" | awk '{print $1}'
+          changed_when: no
+          register: t_workdir_zfs_parent_stat
+
+        - name: set dataset from parent
+          set_fact:
+            workdir_zfs_dataset: "{{ t_workdir_zfs_parent_stat.stdout }}/{{ workdir.label }}"
+          when:
+            - t_workdir_zfs_parent_stat.rc == 0 and t_workdir_zfs_parent_stat.stdout != ""
+
+      when:
+        - workdir.zfs_parent | default(false)
+        - workdir_zfs_dataset is not defined or not workdir_zfs_dataset
+
+    - block:
+        - name: "zfs {{ workdir.zfs_parent_dir }} dir status"
+          shell: zfs list -H "{{ workdir.zfs_parent_dir }}" | awk '{print $1}'
+          changed_when: no
+          register: t_workdir_zfs_parent_dir_stat
+
+        - name: set dataset from parent dir
+          set_fact:
+            workdir_zfs_dataset: "{{ t_workdir_zfs_parent_dir_stat.stdout }}/{{ workdir.label }}"
+          when:
+            - t_workdir_zfs_parent_dir_stat.rc == 0 and t_workdir_zfs_parent_dir_stat.stdout != ""
+
+      when:
+        - workdir.zfs_parent_dir | default(false)
+        - workdir_zfs_dataset is not defined or not workdir_zfs_dataset
+
+
+    - fail:
+        msg: "workdir issue with {{ workdir.label }}, failed to compute dataset"
+      when: workdir_zfs_dataset is not defined or not workdir_zfs_dataset
+
+
+    - name: "dataset for {{ workdir.label }}"
+      zfs:
+        name: "{{ workdir_zfs_dataset }}"
+        state: present
+        extra_zfs_properties: "{{ workdir_zfs_dataset_properties | combine(workdir.zfs_properties | default({})) | combine( (workdir.path|default(false)) | ternary({ 'mountpoint': workdir.path }, {}) ) }}"
+
+    - block:
+        - name: "get final path for {{ workdir.label }}"
+          shell: zfs list -H "{{ workdir_zfs_dataset }}" | awk '{print $NF}'
+          changed_when: no
+          register: t_workdir_zfs_path
+
+        - name: "set workdir path"
+          set_fact:
+            workdir_path: "{{ t_workdir_zfs_path.stdout }}"
+          when: t_workdir_zfs_path.rc == 0 and t_workdir_zfs_path.stdout != ""
+
+      when: workdir.path is not defined or not workdir.path
+
+  when:
+    - share_zfs_try
+    - (workdir.zfs_parent | d(false)) or (workdir.zfs_parent_dir | d(false))
+
+
+- name: "set workdir path"
+  set_fact:
+    workdir_path: "{{ workdir.path }}"
+  when: workdir.path is defined and workdir.path
+
+
+- name: "set {{ workdir.label }} workdir"
+  file:
+    path: "{{ workdir_path }}"
+    owner: "{{ workdir.owner | default(omit) }}"
+    group: "{{ workdir.group | default(omit) }}"
+    mode: "{{ workdir.mode | default(omit) }}"
+  when:
+    - workdir_path is defined and workdir_path

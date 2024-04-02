@@ -1,0 +1,8 @@
+---
+
+- include_tasks: workdir.yml
+  loop: "{{ share_workdirs }}"
+  loop_control:
+    loop_var: workdir
+  vars:
+    workdir_zfs_dataset_properties: "{{ share_zfs_dataset_properties }}"
