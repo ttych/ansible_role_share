@@ -3,9 +3,9 @@
 - block:
     - include_tasks: context.yml
 
-    # - include_tasks: users.yml
+    - include_tasks: users.yml
 
-    # - include_tasks: sync_tool.yml
+    - include_tasks: sync_tool.yml
 
     - include_tasks: share_dirs.yml
 
