@@ -42,6 +42,7 @@ share_sync_directories:
   - { path: "{{ share_etc_dir }}", owner: "{{ share_name }}", group: "{{ share_name }}", mode: "0755" }
   - { path: "{{ share_sync_dir }}", owner: "{{ share_name }}", group: "{{ share_name }}", mode: "0755" }
 
+share_share_zfs_parent: zdata
 
 share_workdirs:
   - label: share
@@ -49,7 +50,7 @@ share_workdirs:
     owner: root
     group: "{{ root_group }}"
     mode: '0555'
-    zfs_parent: zdata
+    zfs_parent: "{{ share_share_zfs_parent }}"
     zfs_properties:
       compression: "lz4"
       setuid: off
