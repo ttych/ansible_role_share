@@ -16,12 +16,12 @@
         workdir_zfs_dataset: null
 
     - block:
-        - name: "zfs {{ workdir.path }} status"
-          shell: zfs list -H "{{ workdir.path }}" | awk '{print $1}'
+        - name: "zfs current path status"
+          shell: zfs list -H "{{ workdir.path }}" | awk '$5 == "{{ workdir.path }}" {print $1}'
           changed_when: no
           register: t_workdir_zfs_stat
 
-        - name: set dataset from current
+        - name: set dataset from current path
           set_fact:
             workdir_zfs_dataset: "{{ t_workdir_zfs_stat.stdout }}"
           when:
@@ -30,12 +30,12 @@
       when: workdir.path | default(false)
 
     - block:
-        - name: "zfs {{ workdir.zfs_parent }} status"
+        - name: "zfs zfs_parent status"
           shell: zfs list -H "{{ workdir.zfs_parent }}" | awk '{print $1}'
           changed_when: no
           register: t_workdir_zfs_parent_stat
 
-        - name: set dataset from parent
+        - name: set dataset from zfs_parent
           set_fact:
             workdir_zfs_dataset: "{{ t_workdir_zfs_parent_stat.stdout }}/{{ workdir.label }}"
           when:
@@ -46,12 +46,12 @@
         - workdir_zfs_dataset is not defined or not workdir_zfs_dataset
 
     - block:
-        - name: "zfs {{ workdir.zfs_parent_dir }} dir status"
+        - name: "zfs zfs_parent_dir status"
           shell: zfs list -H "{{ workdir.zfs_parent_dir }}" | awk '{print $1}'
           changed_when: no
           register: t_workdir_zfs_parent_dir_stat
 
-        - name: set dataset from parent dir
+        - name: set dataset from zfs_parent_dir
           set_fact:
             workdir_zfs_dataset: "{{ t_workdir_zfs_parent_dir_stat.stdout }}/{{ workdir.label }}"
           when:

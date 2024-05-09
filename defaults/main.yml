@@ -42,7 +42,7 @@ share_sync_directories:
   - { path: "{{ share_etc_dir }}", owner: "{{ share_name }}", group: "{{ share_name }}", mode: "0755" }
   - { path: "{{ share_sync_dir }}", owner: "{{ share_name }}", group: "{{ share_name }}", mode: "0755" }
 
-share_share_zfs_parent: zdata
+share_share_zfs_parent: zdata/DATA
 
 share_workdirs:
   - label: share
